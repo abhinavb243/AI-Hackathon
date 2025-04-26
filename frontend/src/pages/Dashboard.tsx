@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   ComplianceStatusCard,
@@ -7,8 +6,37 @@ import {
   ActionCenter,
 } from "@/components/dashboard";
 
+// Define the type for timeline events
+type TimelineEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  type: "deadline" | "task" | "update";
+};
+
+// Define the type for regulations
+type Regulation = {
+  id: string;
+  name: string;
+  region: string;
+  status: "active" | "pending" | "proposed";
+  impact: "high" | "medium" | "low";
+};
+
+// Define the type for tasks
+type TaskItem = {
+  id: string;
+  title: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+  dueDate: string;
+  completed: boolean;
+  redirectPath?: string;  // Add optional redirectPath property
+};
+
 // Sample data
-const timelineEvents = [
+const timelineEvents: TimelineEvent[] = [
   {
     id: "1",
     title: "CPRA Compliance Deadline",
@@ -39,7 +67,7 @@ const timelineEvents = [
   },
 ];
 
-const regulationsList = [
+const regulationsList: Regulation[] = [
   {
     id: "1",
     name: "GDPR",
@@ -77,14 +105,15 @@ const regulationsList = [
   },
 ];
 
-const tasksList = [
+const tasksList: TaskItem[] = [
   {
     id: "1",
     title: "Update Privacy Policy",
     description: "Revise policy to include new CPRA requirements",
     priority: "high",
     dueDate: "May 15, 2025",
-    completed: false
+    completed: false,
+    redirectPath: "/policy-editor"
   },
   {
     id: "2",
@@ -92,7 +121,8 @@ const tasksList = [
     description: "Update data inventory with new third-party processors",
     priority: "medium",
     dueDate: "May 20, 2025",
-    completed: false
+    completed: false,
+    redirectPath: "/data-mapping"
   },
   {
     id: "3",
@@ -100,7 +130,8 @@ const tasksList = [
     description: "Complete Data Protection Impact Assessment",
     priority: "high",
     dueDate: "May 25, 2025",
-    completed: false
+    completed: false,
+    redirectPath: "/dpia-assessment"
   },
   {
     id: "4",
@@ -108,7 +139,8 @@ const tasksList = [
     description: "Conduct privacy awareness training for new hires",
     priority: "low",
     dueDate: "June 5, 2025",
-    completed: true
+    completed: true,
+    redirectPath: "/training"
   },
 ];
 

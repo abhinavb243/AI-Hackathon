@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Customer Personal Information - APAC Region",
+    "data_type": "PII",
+    "description": "Customer names, addresses, phone numbers, email addresses from Asia-Pacific customers",
+    "storage_location": "Singapore Data Center",
+    "classification": "Confidential",
+    "retention_period": "7 years after last activity",
+    "access_controls": "Role-based, restricted to Customer Service",
+    "processing_purpose": "Customer Support, Sales"
+  },
+  {
+    "name": "Payment Information - China",
+    "data_type": "Financial PII",
+    "description": "Chinese customer payment details including UnionPay cards and bank account information",
+    "storage_location": "EU Central Database with copies in Hong Kong",
+    "classification": "Restricted",
+    "retention_period": "5 years after last transaction",
+    "access_controls": "Minimal access, encrypted",
+    "processing_purpose": "Transaction Processing"
+  },
+  {
+    "name": "User Behavioral Data - Japan",
+    "data_type": "Behavioral",
+    "description": "Website usage patterns and preferences of Japanese customers",
+    "storage_location": "Analytics Database in Tokyo",
+    "classification": "Internal",
+    "retention_period": "Indefinite",
+    "access_controls": "",
+    "processing_purpose": "Product Improvement, Marketing, Third-party sharing"
+  },
+  {
+    "name": "Employee Records - South Korea",
+    "data_type": "HR Data",
+    "description": "Employment history, performance evaluations, and personal details of Korean staff",
+    "storage_location": "HR System - Seoul Office",
+    "classification": "Confidential",
+    "retention_period": "",
+    "access_controls": "HR Department Only",
+    "processing_purpose": "Employment Administration"
+  },
+  {
+    "name": "Customer Support Conversations - Indonesia",
+    "data_type": "Communication Data",
+    "description": "Chat logs and support ticket details from Indonesian customers",
+    "storage_location": "Cloud CRM System",
+    "classification": "Internal",
+    "retention_period": "3 years",
+    "access_controls": "Support Team",
+    "processing_purpose": ""
+  },
+  {
+    "name": "Marketing Database - APAC",
+    "data_type": "Contact Information",
+    "description": "Email addresses and contact details for marketing campaigns in APAC region",
+    "storage_location": "Marketing Cloud Platform",
+    "classification": "Business",
+    "retention_period": "Permanent",
+    "access_controls": "Marketing Department",
+    "processing_purpose": "Email Campaigns, Lead Generation"
+  }
+] 

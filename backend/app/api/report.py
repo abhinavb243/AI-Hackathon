@@ -115,4 +115,48 @@ async def download_report(report_id: str):
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error downloading report: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error downloading report: {str(e)}")
+
+@router.post("/generate/{assessment_id}")
+async def generate_report(assessment_id: str):
+    """Generate compliance report based on impact assessment"""
+    try:
+        # Return mock data for testing
+        report = {
+            "status": "success",
+            "message": "Compliance report generated successfully",
+            "report": {
+                "assessment_id": assessment_id,
+                "title": "GDPR Compliance Assessment Report",
+                "summary": "Based on our analysis, the company has moderate compliance gaps with the GDPR, primarily in data retention and user consent areas.",
+                "compliance_score": 68,
+                "risk_level": "Medium",
+                "key_findings": [
+                    {
+                        "id": "finding-1",
+                        "category": "Data Retention",
+                        "description": "Customer data is being stored beyond necessary periods",
+                        "severity": "High",
+                        "recommendation": "Implement automatic data purging after 2 years of inactivity"
+                    },
+                    {
+                        "id": "finding-2",
+                        "category": "User Consent",
+                        "description": "Consent collection does not meet specificity requirements",
+                        "severity": "Medium",
+                        "recommendation": "Update consent forms to be more granular and specific"
+                    },
+                    {
+                        "id": "finding-3",
+                        "category": "Cross-Border Transfers",
+                        "description": "Missing safeguards for EU-US data transfers",
+                        "severity": "Medium",
+                        "recommendation": "Implement EU-approved SCCs for all transfers"
+                    }
+                ],
+                "created_at": datetime.now().isoformat()
+            }
+        }
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating compliance report: {str(e)}") 

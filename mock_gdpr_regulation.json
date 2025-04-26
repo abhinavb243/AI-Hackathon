@@ -1,0 +1,35 @@
+{
+  "source": "GDPR",
+  "title": "GDPR 2023 Amendment on Asia-Pacific Data Protection Standards",
+  "summary": "Updates to GDPR requirements for businesses operating in APAC regions, emphasizing alignment with local regulations including Singapore's PDPA, China's PIPL, Japan's APPI, South Korea's PIPA, and Indonesia's UU PDP.",
+  "content": "The European Data Protection Board has updated GDPR guidelines for multinational organizations operating in Asia-Pacific regions. These guidelines require companies to align their data protection practices with both GDPR and respective local regulations. Key focus areas include data breach notification timelines, cross-border data transfers, consent mechanisms, privacy notices, and appointment of data protection officers.",
+  "previous_version": "Previous GDPR regulations did not explicitly address alignment with Asia-Pacific regional data protection laws",
+  "changes": [
+    {
+      "section": "Article 33",
+      "old_text": "Data breach notification within 72 hours to supervisory authority",
+      "new_text": "Data breach notification within 72 hours to EU supervisory authority and adherence to local notification timelines (e.g., Singapore PDPA's 72-hour requirement)"
+    },
+    {
+      "section": "Article 44",
+      "old_text": "General principle for transfers to third countries",
+      "new_text": "General principle for transfers to third countries, with specific requirements for China PIPL compliance including mandatory security assessments"
+    },
+    {
+      "section": "Article 7",
+      "old_text": "Conditions for consent",
+      "new_text": "Conditions for consent, with additional requirements for secondary data usage in Japan under APPI amendments"
+    },
+    {
+      "section": "Article 13",
+      "old_text": "Information to be provided where personal data are collected from the data subject",
+      "new_text": "Information to be provided where personal data are collected from the data subject, incorporating South Korea PIPA mandatory disclosure items"
+    },
+    {
+      "section": "Article 37",
+      "old_text": "Designation of the data protection officer",
+      "new_text": "Designation of the data protection officer, with explicit requirement to also fulfill DPO obligations under Indonesia's UU PDP for relevant operations"
+    }
+  ],
+  "jurisdiction": "EU-GDPR"
+} 

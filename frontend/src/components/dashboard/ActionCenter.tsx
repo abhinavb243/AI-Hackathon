@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ListChecks } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type TaskItem = {
   id: string;
@@ -12,6 +12,7 @@ type TaskItem = {
   priority: "high" | "medium" | "low";
   dueDate: string;
   completed: boolean;
+  redirectPath?: string;
 };
 
 type ActionCenterProps = {
@@ -20,6 +21,8 @@ type ActionCenterProps = {
 };
 
 export function ActionCenter({ tasks, onTaskToggle }: ActionCenterProps) {
+  const navigate = useNavigate();
+  
   const getPriorityClass = (priority: TaskItem["priority"]) => {
     switch (priority) {
       case "high":
@@ -31,12 +34,17 @@ export function ActionCenter({ tasks, onTaskToggle }: ActionCenterProps) {
     }
   };
 
+  const handleRedirect = (task: TaskItem) => {
+    const path = task.redirectPath || `/tasks/${task.id}`;
+    navigate(path);
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <ListChecks size={18} />
-          <span>Action Center</span>
+          <span>Policy Updates</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="max-h-[400px] overflow-y-auto">
@@ -62,6 +70,7 @@ export function ActionCenter({ tasks, onTaskToggle }: ActionCenterProps) {
                     className={`font-medium cursor-pointer ${
                       task.completed ? "line-through text-muted-foreground" : ""
                     }`}
+                    onClick={() => handleRedirect(task)}
                   >
                     {task.title}
                   </label>
@@ -70,7 +79,13 @@ export function ActionCenter({ tasks, onTaskToggle }: ActionCenterProps) {
                   </p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs">Due: {task.dueDate}</span>
-                    <Button variant="outline" size="sm">Details</Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleRedirect(task)}
+                    >
+                      Details
+                    </Button>
                   </div>
                 </div>
               </div>
