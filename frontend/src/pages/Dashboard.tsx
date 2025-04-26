@@ -1,177 +1,137 @@
-
-import { useState } from "react";
-import { 
-  ComplianceStatusCard,
-  ComplianceTimeline,
-  RegulatoryMap,
-  ActionCenter,
-} from "@/components/dashboard";
-
-// Sample data
-const timelineEvents = [
-  {
-    id: "1",
-    title: "CPRA Compliance Deadline",
-    description: "California Privacy Rights Act enforcement begins",
-    date: "June 30, 2025",
-    type: "deadline"
-  },
-  {
-    id: "2",
-    title: "GDPR Risk Assessment Update",
-    description: "Updated risk assessment required due to recent rulings",
-    date: "July 15, 2025",
-    type: "task"
-  },
-  {
-    id: "3",
-    title: "New Virginia Data Protection Law",
-    description: "Virginia Consumer Data Protection Act goes into effect",
-    date: "August 1, 2025",
-    type: "update"
-  },
-  {
-    id: "4",
-    title: "Quarterly Privacy Review",
-    description: "Internal review of privacy program effectiveness",
-    date: "September 30, 2025",
-    type: "task"
-  },
-];
-
-const regulationsList = [
-  {
-    id: "1",
-    name: "GDPR",
-    region: "European Union",
-    status: "active",
-    impact: "high"
-  },
-  {
-    id: "2",
-    name: "CCPA/CPRA",
-    region: "California, USA",
-    status: "active",
-    impact: "high"
-  },
-  {
-    id: "3",
-    name: "PIPEDA",
-    region: "Canada",
-    status: "active",
-    impact: "medium"
-  },
-  {
-    id: "4",
-    name: "LGPD",
-    region: "Brazil",
-    status: "active",
-    impact: "medium"
-  },
-  {
-    id: "5",
-    name: "CDPA",
-    region: "Virginia, USA",
-    status: "pending",
-    impact: "low"
-  },
-];
-
-const tasksList = [
-  {
-    id: "1",
-    title: "Update Privacy Policy",
-    description: "Revise policy to include new CPRA requirements",
-    priority: "high",
-    dueDate: "May 15, 2025",
-    completed: false
-  },
-  {
-    id: "2",
-    title: "Data Mapping Review",
-    description: "Update data inventory with new third-party processors",
-    priority: "medium",
-    dueDate: "May 20, 2025",
-    completed: false
-  },
-  {
-    id: "3",
-    title: "DPIA for New Marketing Tool",
-    description: "Complete Data Protection Impact Assessment",
-    priority: "high",
-    dueDate: "May 25, 2025",
-    completed: false
-  },
-  {
-    id: "4",
-    title: "Employee Training Session",
-    description: "Conduct privacy awareness training for new hires",
-    priority: "low",
-    dueDate: "June 5, 2025",
-    completed: true
-  },
-];
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
+import { AppDispatch, RootState } from '../store'
+import { fetchRegulations } from '../store/slices/regulationsSlice'
+import { fetchFindings } from '../store/slices/findingsSlice'
+import { fetchActionItems } from '../store/slices/actionItemsSlice'
+import { fetchReports } from '../store/slices/reportsSlice'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const Dashboard = () => {
-  const [tasks, setTasks] = useState(tasksList);
-
-  const handleTaskToggle = (id: string, checked: boolean) => {
-    setTasks(
-      tasks.map(task => 
-        task.id === id 
-          ? { ...task, completed: checked } 
-          : task
-      )
-    );
-  };
+  const dispatch = useDispatch<AppDispatch>()
+  const regulations = useSelector((state: RootState) => state.regulations.items)
+  const findings = useSelector((state: RootState) => state.findings.items)
+  const actionItems = useSelector((state: RootState) => state.actionItems.items)
+  const reports = useSelector((state: RootState) => state.reports.items)
+  
+  useEffect(() => {
+    dispatch(fetchRegulations())
+    dispatch(fetchFindings())
+    dispatch(fetchActionItems())
+    dispatch(fetchReports())
+  }, [dispatch])
+  
+  // Calculate statistics
+  const totalRegulations = regulations.length
+  const totalFindings = findings.length
+  const totalActionItems = actionItems.length
+  const completeActionItems = actionItems.filter(item => item.status === 'completed').length
+  const pendingActionItems = actionItems.filter(item => item.status === 'pending').length
+  const inProgressActionItems = actionItems.filter(item => item.status === 'in_progress').length
+  
+  // Data for charts
+  const priorityData = [
+    { name: 'High', count: actionItems.filter(item => item.priority === 'High').length },
+    { name: 'Medium', count: actionItems.filter(item => item.priority === 'Medium').length },
+    { name: 'Low', count: actionItems.filter(item => item.priority === 'Low').length },
+  ]
+  
+  const statusData = [
+    { name: 'Pending', count: pendingActionItems },
+    { name: 'In Progress', count: inProgressActionItems },
+    { name: 'Completed', count: completeActionItems },
+  ]
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Privacy Compliance Dashboard</h1>
-        <div className="text-sm text-muted-foreground">
-          Last updated: April 26, 2025
+    <div className="space-y-6">
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-medium text-gray-500">Regulations</h3>
+          <p className="text-3xl font-semibold mt-2">{totalRegulations}</p>
+          <Link to="/regulations" className="text-blue-600 text-sm mt-4 block">View all</Link>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-medium text-gray-500">Findings</h3>
+          <p className="text-3xl font-semibold mt-2">{totalFindings}</p>
+          <Link to="/findings" className="text-blue-600 text-sm mt-4 block">View all</Link>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-medium text-gray-500">Action Items</h3>
+          <p className="text-3xl font-semibold mt-2">{totalActionItems}</p>
+          <div className="flex text-sm mt-4">
+            <span className="text-green-600 mr-3">{completeActionItems} completed</span>
+            <span className="text-amber-600">{pendingActionItems + inProgressActionItems} open</span>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-medium text-gray-500">Reports</h3>
+          <p className="text-3xl font-semibold mt-2">{reports.length}</p>
+          <Link to="/reports" className="text-blue-600 text-sm mt-4 block">View all</Link>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <ComplianceStatusCard
-          title="Overall Compliance Status"
-          status="warning"
-          description="3 high priority tasks require attention"
-          value="78%"
-        />
-        <ComplianceStatusCard
-          title="GDPR Compliance"
-          status="compliant"
-          description="All requirements currently met"
-          value="92%"
-        />
-        <ComplianceStatusCard
-          title="CCPA/CPRA Status"
-          status="warning"
-          description="Privacy policy needs updating"
-          value="65%"
-        />
-        <ComplianceStatusCard
-          title="Breach Risk Score"
-          status="critical"
-          description="Data transfer mechanisms require review"
-          value="High"
-        />
+      
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-base font-medium mb-4">Action Items by Priority</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={priorityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#4f46e5" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-base font-medium mb-4">Action Items by Status</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={statusData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ActionCenter tasks={tasks} onTaskToggle={handleTaskToggle} />
-        </div>
-        <div className="space-y-6">
-          <RegulatoryMap regulations={regulationsList} />
-          <ComplianceTimeline events={timelineEvents} />
-        </div>
+      
+      {/* Recent updates */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h3 className="text-base font-medium mb-4">Recent Regulatory Updates</h3>
+        {regulations.length > 0 ? (
+          <ul className="divide-y">
+            {regulations.slice(0, 5).map((reg) => (
+              <li key={reg.id} className="py-3">
+                <h4 className="font-medium">{reg.title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{reg.summary}</p>
+                <div className="flex justify-between mt-2">
+                  <span className="text-xs text-gray-500">Source: {reg.source}</span>
+                  <span className="text-xs text-gray-500">
+                    Published: {new Date(reg.published_date).toLocaleDateString()}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500">No regulations found.</p>
+        )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard 

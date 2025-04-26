@@ -1,43 +1,23 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Layout } from "./components/layout/Layout";
-import Dashboard from "./pages/Dashboard";
-import Assessment from "./pages/Assessment";
-import Regulations from "./pages/Regulations";
-import NotFound from "./pages/NotFound";
+import { Routes, Route } from 'react-router-dom'
+import Dashboard from './pages/Dashboard'
+import RegulationsPage from './pages/RegulationsPage'
+import FindingsPage from './pages/FindingsPage'
+import ActionItemsPage from './pages/ActionItemsPage'
+import ReportsPage from './pages/ReportsPage'
+import Layout from './components/Layout'
 
-const queryClient = new QueryClient();
+function App() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/regulations" element={<RegulationsPage />} />
+        <Route path="/findings" element={<FindingsPage />} />
+        <Route path="/action-items" element={<ActionItemsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+      </Routes>
+    </Layout>
+  )
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <Layout>
-              <Dashboard />
-            </Layout>
-          } />
-          <Route path="/assessment" element={
-            <Layout>
-              <Assessment />
-            </Layout>
-          } />
-          <Route path="/regulations" element={
-            <Layout>
-              <Regulations />
-            </Layout>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+export default App 
