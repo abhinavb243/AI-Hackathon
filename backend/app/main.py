@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
@@ -102,11 +101,11 @@ async def run_full_pipeline():
     """Run the complete compliance pipeline from regulatory scraping to report generation"""
     try:
         # Prepare regulation data
-        regulation_data = request.regulation
-        if request.source:
-            regulation_data["source"] = request.source
-        if request.priority:
-            regulation_data["priority"] = request.priority
+        # regulation_data = request.regulation
+        # if request.source:
+        #     regulation_data["source"] = request.source
+        # if request.priority:
+        #     regulation_data["priority"] = request.priority
             
         # Run the LangGraph pipeline
         result = await run_pipeline()
