@@ -1,206 +1,325 @@
-from typing import Dict, Any, List, TypedDict, Annotated, Tuple
+from typing import Dict, Any, List, TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
-from app.core.settings import OPENAI_API_KEY
 import json
+import os
 
-# Define state
-class AgentState(TypedDict):
-    regulation: Dict[str, Any]
-    findings: List[Dict[str, Any]]
-    action_items: List[Dict[str, Any]]
-    errors: List[str]
+# Define a simple state structure
+# Define the state structure as a TypedDict
+class WorkflowState(TypedDict, total=False):
+    """State structure for the workflow"""
+    regulation: Dict[str, str]
+    privacy_policy: str
+    analysis: Dict[str, List[str]]
+    impact: Dict[str, Any]
+    action_plan: Dict[str, List[Dict[str, str]]]
     final_report: Dict[str, Any]
+    error: str
 
-# Initialize the LLMs for each agent
-regulatory_agent = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o")
-impact_agent = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o") 
-planning_agent = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o")
+# Initialize the LLM
+api_key = os.environ.get("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY is not set in environment variables")
 
-# Define agent functions
-def regulatory_intelligence(state: AgentState) -> AgentState:
-    """Process regulatory information and extract key insights"""
+llm = ChatOpenAI(api_key=api_key, model="gpt-4o-mini")
+
+def regulatory_analysis(state: WorkflowState) -> WorkflowState:
+    """Analyze regulatory information and extract key insights"""
+    # Define static regulation example
+    regulation = {
+        "title": "Align Data Handling with Singapore PDPA Updates",
+        "description": "Adapt data retention policies to comply with new PDPA amendments on data breach notification timelines.",
+        "priority": "high",
+        "dueDate": "May 30, 2025",
+        "potentialFine": "Up to SGD 1 million (approx. USD 740,000)"
+    }
+    
+    # Define static privacy policy
+    privacy_policy = """Privacy Policy
+    Last Updated: January 1, 2024
+
+    1. Data Collection and Use
+    We collect personal information from users for specific business purposes.
+
+    2. Data Retention
+    We retain personal data for as long as necessary to provide our services.
+
+    3. Data Breach Notification
+    In the event of a data breach, we will notify affected users within 72 hours.
+
+    4. User Rights
+    Users have the right to access, correct, and delete their personal data.
+
+    5. International Data Transfers
+    We may transfer data internationally in compliance with applicable laws.
+    """
+    
+    # Create prompt for the LLM
+    prompt = f"""Analyze this regulatory requirement:
+    
+    Title: {regulation['title']}
+    Description: {regulation['description']}
+    Priority: {regulation['priority']}
+    Due Date: {regulation['dueDate']}
+    Potential Fine: {regulation['potentialFine']}
+    
+    Current Privacy Policy:
+    {privacy_policy}
+    
+    Extract the key requirements and policy sections that need updates.
+    
+    Your response MUST be a valid JSON object with these exact fields:
+    {{
+        "key_requirements": ["requirement1", "requirement2", ...],
+        "policy_updates": ["section1", "section2", ...]
+    }}
+    
+    Make sure your output is properly formatted JSON without any additional text before or after.
+    """
     try:
-        # In a real implementation, this would:
-        # 1. Use the LLM to analyze the regulation
-        # 2. Extract key changes and requirements
+        # Get analysis from LLM
+        print("Sending request to regulatory analysis agent...")
+        response = llm.invoke(prompt)
+        print(f"Received response from LLM: {response.content}...")
         
-        # Simulated processing
-        processed_regulation = state["regulation"]
-        processed_regulation["processed"] = True
-        processed_regulation["key_requirements"] = [
-            "Quarterly reporting for funds over $500M",
-            "Disclosure of investment strategies required"
-        ]
-        
-        return {"regulation": processed_regulation, "errors": state.get("errors", [])}
-    except Exception as e:
-        return {"regulation": state["regulation"], "errors": state.get("errors", []) + [f"Regulatory error: {str(e)}"]}
-
-def impact_assessment(state: AgentState) -> AgentState:
-    """Assess the financial impact of the regulation"""
-    try:
-        # Skip if there are errors from previous step
-        if state.get("errors"):
-            return state
-        
-        # In a real implementation, this would:
-        # 1. Use the LLM to analyze financial impact
-        # 2. Generate findings based on regulation and data catalog
-        
-        # Simulated findings
-        findings = [
-            {
-                "id": "finding-001",
-                "title": "Quarterly reporting threshold change impacts 15 funds",
-                "description": "The change in threshold from $1B to $500M means 15 additional funds will need quarterly reporting",
-                "regulation_section": "2a",
-                "confidence": 0.92
-            },
-            {
-                "id": "finding-002",
-                "title": "New disclosure requirements affect investment strategy reporting",
-                "description": "All private funds will need to update reporting templates and processes",
-                "regulation_section": "4b",
-                "confidence": 0.85
+        # Try to parse as JSON
+        try:
+            analysis = json.loads(response.content)
+        except:
+            print("Failed to parse JSON, using structured content")
+            # Extract content in a more forgiving way
+            analysis = {
+                "key_requirements": [response.content],
+                "policy_updates": ["Data Breach Notification section"]
             }
-        ]
         
-        return {
-            "regulation": state["regulation"],
-            "findings": findings,
-            "errors": state.get("errors", [])
-        }
+        # Update state with analysis results
+        state["regulation"] = regulation
+        state["privacy_policy"] = privacy_policy
+        state["analysis"] = analysis
+        
+        return state
+        
     except Exception as e:
-        return {
-            "regulation": state["regulation"],
-            "findings": [],
-            "errors": state.get("errors", []) + [f"Impact error: {str(e)}"]
-        }
+        print(f"Error in regulatory analysis: {str(e)}")
+        state["error"] = f"Regulatory analysis failed: {str(e)}"
+        return state
 
-def implementation_planning(state: AgentState) -> AgentState:
-    """Create an implementation plan based on findings"""
+def impact_assessment(state: WorkflowState) -> WorkflowState:
+    """Assess the impact of the regulatory requirements"""
+    if "error" in state:
+        return state
+        
+    regulation = state["regulation"]
+    analysis = state["analysis"]
+    
+    # Create prompt for impact assessment
+    prompt = f"""Based on this regulation and analysis:
+    
+    Regulation: {regulation['title']} - {regulation['description']}
+    Key Requirements: {json.dumps(analysis.get('key_requirements', []))}
+    Policy Updates: {json.dumps(analysis.get('policy_updates', []))}
+    
+    Assess the business impact:
+    1. What operational changes are needed?
+    2. What are the main compliance risks?
+    3. What is the resource impact?
+    
+    Your response MUST be a valid JSON object with these exact fields:
+    {{
+        "operational_changes": ["change1", "change2", ...],
+        "compliance_risks": ["risk1", "risk2", ...],
+        "resource_impact": "brief description"
+    }}
+
+    Make sure your output is properly formatted JSON without any additional text before or after.
+    """
+    
     try:
-        # Skip if there are errors or no findings
-        if state.get("errors") or not state.get("findings"):
-            return state
+        # Get impact assessment from LLM
+        print("Sending request to impact assessment agent...")
+        response = llm.invoke(prompt)
+        print(f"Received impact assessment: {response.content[:100]}...")
         
-        # In a real implementation, this would:
-        # 1. Use the LLM to generate action items
-        # 2. Create timeline and assign responsibilities
-        
-        # Simulated action items
-        action_items = [
-            {
-                "title": "Update reporting systems",
-                "description": "Modify quarterly reporting system to handle new $500M threshold",
-                "priority": "High",
-                "assigned_to": "IT Team",
-                "due_date": "2023-07-15T00:00:00Z",
-                "status": "pending",
-                "finding_id": "finding-001"
-            },
-            {
-                "title": "Notify affected funds",
-                "description": "Send notification to the 15 funds newly subject to quarterly reporting",
-                "priority": "Medium",
-                "assigned_to": "Compliance Team",
-                "due_date": "2023-08-15T00:00:00Z",
-                "status": "pending",
-                "finding_id": "finding-001"
+        # Try to parse as JSON
+        try:
+            impact = json.loads(response.content)
+        except:
+            print("Failed to parse JSON, using structured content")
+            impact = {
+                "operational_changes": ["Update notification processes"],
+                "compliance_risks": ["Missing notification deadlines"],
+                "resource_impact": "Medium - requires policy updates and staff training"
             }
-        ]
         
-        return {
-            "regulation": state["regulation"],
-            "findings": state["findings"],
-            "action_items": action_items,
-            "errors": state.get("errors", [])
-        }
+        # Update state with impact results
+        state["impact"] = impact
+        return state
+        
     except Exception as e:
-        return {
-            "regulation": state["regulation"],
-            "findings": state["findings"],
-            "action_items": [],
-            "errors": state.get("errors", []) + [f"Planning error: {str(e)}"]
-        }
+        print(f"Error in impact assessment: {str(e)}")
+        state["error"] = f"Impact assessment failed: {str(e)}"
+        return state
 
-def generate_final_report(state: AgentState) -> AgentState:
-    """Generate the final compliance report"""
+def action_planning(state: WorkflowState) -> WorkflowState:
+    """Create action plan based on analysis and impact assessment"""
+    if "error" in state:
+        return state
+        
+    regulation = state["regulation"]
+    analysis = state["analysis"]
+    impact = state["impact"]
+    
+    # Create prompt for action planning
+    prompt = f"""Create an action plan:
+    
+    Regulation: {regulation['title']} - Due by {regulation['dueDate']}
+    Requirements: {json.dumps(analysis.get('key_requirements', []))}
+    Operational Changes: {json.dumps(impact.get('operational_changes', []))}
+    Compliance Risks: {json.dumps(impact.get('compliance_risks', []))}
+
+Create 3-5 specific action items with:
+- title
+- description
+- priority (high/medium/low)
+- assigned_to (role/department)
+- deadline
+
+Your response MUST be a valid JSON object with these exact fields:
+{{
+    "action_items": [
+        {{
+            "title": "...",
+            "description": "...",
+            "priority": "high|medium|low",
+            "assigned_to": "...",
+            "deadline": "YYYY-MM-DD"
+        }},
+        ...
+    ]
+}}
+
+    """
+    
     try:
-        # Create a comprehensive report
-        report = {
-            "title": f"Compliance Report: {state['regulation'].get('title', 'Regulation Change')}",
-            "summary": f"Analysis of {state['regulation'].get('title')} with {len(state.get('findings', []))} findings and {len(state.get('action_items', []))} action items.",
-            "regulation": state["regulation"],
-            "findings": state.get("findings", []),
-            "action_items": state.get("action_items", []),
-            "next_steps": "Review and implement the action items according to the timeline.",
-            "completion_status": "complete" if not state.get("errors") else "incomplete"
+        # Get action plan from LLM
+        print("Sending request to action planning agent...")
+        response = llm.invoke(prompt)
+        print(f"Received action plan: {response.content[:100]}...")
+        
+        # Try to parse as JSON
+        try:
+            action_plan = json.loads(response.content)
+        except:
+            print("Failed to parse JSON, using structured content")
+            action_plan = {
+                "action_items": [
+                    {
+                        "title": "Update Privacy Policy",
+                        "description": "Revise data breach notification section",
+                        "priority": "high",
+                        "assigned_to": "Legal Department",
+                        "deadline": "May 1, 2025"
+                    },
+                    {
+                        "title": "Staff Training",
+                        "description": "Train staff on new notification procedures",
+                        "priority": "medium",
+                        "assigned_to": "HR Department",
+                        "deadline": "May 15, 2025"
+                    }
+                ]
+            }
+        
+        # Update state with action plan
+        state["action_plan"] = action_plan
+        
+        # Generate summary report
+        state["final_report"] = {
+            "title": f"Compliance Report: {regulation['title']}",
+            "due_date": regulation['dueDate'],
+            "key_requirements": analysis.get('key_requirements', []),
+            "compliance_risks": impact.get('compliance_risks', []),
+            "action_items_count": len(action_plan.get('action_items', [])),
+            "high_priority_actions": len([a for a in action_plan.get('action_items', []) if a.get('priority') == 'high'])
         }
         
-        return {
-            "regulation": state["regulation"],
-            "findings": state.get("findings", []),
-            "action_items": state.get("action_items", []),
-            "errors": state.get("errors", []),
-            "final_report": report
-        }
+        return state
+        
     except Exception as e:
-        return {
-            "regulation": state["regulation"],
-            "findings": state.get("findings", []),
-            "action_items": state.get("action_items", []),
-            "errors": state.get("errors", []) + [f"Report generation error: {str(e)}"],
-            "final_report": {"error": "Failed to generate report"}
-        }
+        print(f"Error in action planning: {str(e)}")
+        state["error"] = f"Action planning failed: {str(e)}"
+        return state
 
-def should_end(state: AgentState) -> Tuple[bool, bool]:
-    """Determine if the workflow should end."""
-    # End if there are errors or if we have a final report
-    return bool(state.get("errors")) or "final_report" in state, END
+def should_end(state: WorkflowState) -> tuple[bool, str]:
+    """Determine if workflow should end"""
+    if "error" in state or "final_report" in state:
+        return True, END
+    return False, "continue"
 
-# Create the graph
-def create_workflow_graph():
-    workflow = StateGraph(AgentState)
+# Create the workflow graph
+def create_workflow():
+    # Initialize the graph
+    workflow = StateGraph(WorkflowState)
     
     # Add nodes
-    workflow.add_node("regulatory_intelligence", regulatory_intelligence)
+    workflow.add_node("regulatory_analysis", regulatory_analysis)
     workflow.add_node("impact_assessment", impact_assessment)
-    workflow.add_node("implementation_planning", implementation_planning)
-    workflow.add_node("generate_final_report", generate_final_report)
+    workflow.add_node("action_planning", action_planning)
     
-    # Add edges
-    workflow.add_edge("regulatory_intelligence", "impact_assessment")
-    workflow.add_edge("impact_assessment", "implementation_planning")
-    workflow.add_edge("implementation_planning", "generate_final_report")
-    workflow.add_conditional_edges(
-        "generate_final_report",
-        should_end
-    )
+    # Add edges for sequential flow
+    workflow.add_edge("regulatory_analysis", "impact_assessment")
+    workflow.add_edge("impact_assessment", "action_planning")
     
-    # Set the entry point
-    workflow.set_entry_point("regulatory_intelligence")
+    # Add conditional edge from action_planning 
+    workflow.add_conditional_edges("action_planning", should_end)
     
+    # Set entry point
+    workflow.set_entry_point("regulatory_analysis")
+    
+    # Compile graph
     return workflow.compile()
 
-# Create the workflow for use in API
-compliance_workflow = create_workflow_graph()
-
-async def run_pipeline(regulation: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Run the full compliance workflow pipeline
-    
-    Args:
-        regulation: The regulation data to process
+# Run the workflow
+async def run_pipeline():
+    """Run the full workflow and return results"""
+    try:
+        # Create workflow
+        print("Creating workflow...")
+        workflow = create_workflow()
         
-    Returns:
-        The final state containing the report and any errors
-    """
-    # Initialize state
-    initial_state = {"regulation": regulation, "errors": []}
+        # Initialize empty state
+        initial_state = WorkflowState()
+        
+        # Run the workflow
+        print("Running workflow...")
+        final_state = workflow.invoke(initial_state)
+        
+        # Check for errors
+        if "error" in final_state:
+            print(f"Workflow completed with error: {final_state['error']}")
+        else:
+            print("Workflow completed successfully!")
+            print(f"Generated {len(final_state.get('action_plan', {}).get('action_items', []))} action items")
+        
+        return final_state
     
-    # Run the workflow
-    result = compliance_workflow.invoke(initial_state)
+    except Exception as e:
+        print(f"Workflow execution error: {str(e)}")
+        return {"error": f"Workflow execution failed: {str(e)}"}
+
+# # Run the workflow if this script is executed directly
+# if __name__ == "__main__":
+#     print("Starting workflow execution...")
+#     result = run_workflow()
     
-    return result 
+#     # Print final report
+#     if "final_report" in result:
+#         print("\nFINAL REPORT:")
+#         print(json.dumps(result["final_report"], indent=2))
+        
+#         print("\nACTION ITEMS:")
+#         for i, item in enumerate(result.get("action_plan", {}).get("action_items", [])):
+#             print(f"{i+1}. {item.get('title')} ({item.get('priority')}) - {item.get('deadline')}")
+    # else:
+    #     print("\nNo final report generated. Check for errors.")
