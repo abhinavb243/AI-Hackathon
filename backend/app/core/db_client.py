@@ -3,13 +3,26 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2.pool import ThreadedConnectionPool
 from app.core.settings import DATABASE_URL
+import logging
 
-# Initialize connection pool
-pool = ThreadedConnectionPool(
-    minconn=5,
-    maxconn=20,
-    dsn=DATABASE_URL
-)
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize connection pool if DATABASE_URL is available
+pool = None
+if DATABASE_URL:
+    try:
+        pool = ThreadedConnectionPool(
+            minconn=5,
+            maxconn=20,
+            dsn=DATABASE_URL
+        )
+        logger.info("Database connection pool initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database connection pool: {str(e)}")
+else:
+    logger.warning("DATABASE_URL is not set. Direct database access will not be available")
 
 def execute_query(query, params=None, fetch=True):
     """
@@ -23,6 +36,9 @@ def execute_query(query, params=None, fetch=True):
     Returns:
         list: Query results (if fetch=True)
     """
+    if pool is None:
+        raise ValueError("Database connection pool is not initialized. Check DATABASE_URL in your .env file")
+        
     conn = pool.getconn()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
