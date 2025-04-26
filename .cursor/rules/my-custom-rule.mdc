@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# good coding practices
+
+- always prefer simple solutions
+- avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code or functionality
+- you are careful to only apply changes that are requested or you are confident are well understood and related to the change being requested 
+- when fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. and if you eventually do introduce a new pattern or technology, make sure you remove the old implementation afterwards so we do not have duplicate logic.
+- keep the codebase very clean and organised
+- avoiding writing scripts in files if possible, especially if the script is likely only going to be run once
+- avoiding having files over 200-300 lines of code, refactor at this point
+- never overwrite my .env file without first asking and confirming

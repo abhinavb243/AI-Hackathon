@@ -1,0 +1,15 @@
+# Compliance AI Pipeline Cron Schedule
+# To install: crontab /path/to/schedule_cron.txt
+
+# Environment variables
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=admin@example.com
+
+# Run the regulatory intelligence scraper daily at 01:00 AM
+0 1 * * * /Users/suhuaiyu/Documents/GitHub/AI-Hackathon/scripts/run_pipeline.sh
+
+# Run the full pipeline weekly on Mondays at 02:00 AM
+0 2 * * 1 curl -X POST http://localhost:8000/run-pipeline -H "Content-Type: application/json" -d '{"full_pipeline": true}' 2>&1 | tee -a /Users/suhuaiyu/Documents/GitHub/AI-Hackathon/backend/logs/weekly_pipeline.log || echo "Weekly pipeline failed" | mail -s "Cron Error" admin@example.com
+
+# IMPORTANT: Update the paths above to match your actual installation paths. 
