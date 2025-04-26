@@ -113,4 +113,52 @@ async def update_action_item(action_item_id: str, action_item: ActionItem):
             "action_item": result.data[0]
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating action item: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error updating action item: {str(e)}")
+
+@router.post("/generate/{regulation_diff_id}")
+async def generate_plan(regulation_diff_id: str):
+    """Generate implementation plan for a specific regulation diff"""
+    try:
+        # Just return mock data for testing
+        action_plan = {
+            "status": "success",
+            "message": "Implementation plan generated successfully",
+            "plan": {
+                "regulation_diff_id": regulation_diff_id,
+                "priority_actions": [
+                    {
+                        "id": "action-1",
+                        "title": "Update Data Retention Policies",
+                        "description": "Revise retention periods for all Asia-Pacific customer data",
+                        "owner": "Data Protection Officer",
+                        "estimated_effort": "Medium",
+                        "deadline": "30 days",
+                        "dependencies": []
+                    },
+                    {
+                        "id": "action-2",
+                        "title": "Implement Cross-Border Transfer Safeguards",
+                        "description": "Establish security assessments for China PIPL compliance",
+                        "owner": "Legal Team",
+                        "estimated_effort": "High",
+                        "deadline": "60 days",
+                        "dependencies": []
+                    },
+                    {
+                        "id": "action-3",
+                        "title": "Update Consent Mechanisms",
+                        "description": "Modify consent collection for Japanese customers",
+                        "owner": "Product Team",
+                        "estimated_effort": "Medium",
+                        "deadline": "45 days",
+                        "dependencies": []
+                    }
+                ],
+                "estimated_timeline": "90 days",
+                "total_effort_estimate": "High",
+                "created_at": datetime.now().isoformat()
+            }
+        }
+        return action_plan
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating implementation plan: {str(e)}") 

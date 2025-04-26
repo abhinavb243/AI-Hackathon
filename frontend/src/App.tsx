@@ -7,6 +7,7 @@ import { Layout } from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Assessment from "./pages/Assessment";
 import Regulations from "./pages/Regulations";
+import PolicyEditor from "./pages/PolicyEditor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,11 @@ const App = () => (
           <Route path="/regulations" element={
             <Layout>
               <Regulations />
+            </Layout>
+          } />
+          <Route path="/policy-editor" element={
+            <Layout>
+              <PolicyEditor />
             </Layout>
           } />
           <Route path="*" element={<NotFound />} />
