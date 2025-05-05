@@ -42,10 +42,13 @@ export const testComplianceDetection = async (mockRegulation: RegulationData, us
       throw new Error('Invalid regulation format. Must include source, title, and changes.');
     }
 
-    // Call the test-compliance-pipeline endpoint
-    const response = await axios.post('http://localhost:8000/test-compliance-pipeline', {
-      mock_regulation: mockRegulation,
-      use_mock_company_data: useMockCompanyData
+    // Call the run-pipeline endpoint with the correct request format
+    const response = await axios.post('http://localhost:8000/run-pipeline', {
+      regulation: {
+        data: mockRegulation, // Put the regulation data inside the regulation object
+      },
+      source: mockRegulation.source,
+      priority: "medium" // Default priority
     });
 
     return response.data;
